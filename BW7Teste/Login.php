@@ -19,14 +19,14 @@
 
         <div class="row d-flex h-100 justify-content-center align-content-center">
 
-        <form action="/login" method="post" class=" row col-12 col-md-8 mx-md-0 ">
+        <form action="/Login.php" method="post" class=" row col-12 col-md-8 mx-md-0 ">
        
             <h3 class="text-start">Login</h3>
         
             <div class="form-group input-group-sm col-12">
                 <label for="inputEmail">Email:</label>
                 <input type="email" class="form-control border-1 border-primary " name="email" id="inputEmail"
-                    aria-describedby="helpEmail" placeholder="Ex: email@email.com" value="{{ old('email') }}">
+                    aria-describedby="helpEmail" placeholder="Ex: email@email.com" value="">
                 <small id="helpEmail" class="form-text text-muted">Seu email.</small>
                 <!--
 
@@ -52,7 +52,7 @@
             <div class="d-grid gap-2 col-12 mt-3">
                 <button type="submit" class="btn btn-primary" type="button">Entrar</button>
             </div>
-            <a href="/Auth/Register">Não Possui uma conta? Cadastre-se agora!</a>
+            <a href="/BW7Teste/SignUp.php">Não Possui uma conta? Cadastre-se agora!</a>
         </form>
 
         </div>
