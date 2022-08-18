@@ -6,7 +6,11 @@ class Usuario{
     private $Senha;
     private $id;
 
-    function __construct($nome, $email, $senha) {
+    function __construct() {
+        return $this;
+    }
+
+    function constructParcial($nome, $email, $senha) {
         $this->Nome = $nome;
         $this->Email = $email;
         $this->Senha = $senha;

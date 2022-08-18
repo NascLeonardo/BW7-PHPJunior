@@ -11,27 +11,38 @@ if (!isset($_SESSION["UserId"])) {
   header("Location: http://$host$uri/$extra");
   exit;
 } else {
-  //Verifica se a requisição post está completa
-  if (isset($_POST["Nome"]) && isset($_POST["Marca"]) && isset($_POST["Placa"])) {
-    //Verifica se a placa é válida em relação ao padrão solicitado pelo sistema
-    if (strlen(str_replace("_", "", $_POST["Placa"])) != 7) {
-      $erros = "<p class='text-danger'>Placa não confere com o padrão Mercosul</p>";
-    } else {
-      // Inicializa um objeto Veículo e o popula com as informações passada pelo usuário
-      $veiculo = new Veiculo();
-      $veiculo->setNome($_POST["Nome"]);
-      $veiculo->setMarca($_POST["Marca"]);
-      $veiculo->setPlaca($_POST["Placa"]);
+  //Caso a requisição esteja correta, com o ID do veículo no metodo get, retorna o objeto para prosseguir com a alteração
+  if (isset($_GET["IDVeiculo"])) {
+    $veiculo = VeiculoController::GetById($_GET["IDVeiculo"]);
+    //caso a requisição de alteração tenha falhado, retorna para a tela de index
+    if ($veiculo == false) {
+      $host  = $_SERVER['HTTP_HOST'];
+      $uri   = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+      $extra = 'Index.php';
+      header("Location: http://$host$uri/$extra");
+      exit;
+    }
+    if (isset($_POST["Nome"]) && isset($_POST["Marca"]) && isset($_POST["Placa"])) {
 
-      //Executa a função de cadastro e em caso de sucesso redireciona para a tela de index
-      if (VeiculoController::CadastroVeiculo($veiculo) != false) {
-        $host  = $_SERVER['HTTP_HOST'];
-        $uri   = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-        $extra = 'Index.php';
-        header("Location: http://$host$uri/$extra");
-        exit;
+      if (strlen(str_replace("_", "", $_POST["Placa"])) != 7) {
+        $erros = "<p class='text-danger'>Placa não confere com o padrão Mercosul</p>";
       } else {
-        $erros = "<p class='text-danger'>Cadastro não realizado</p>";
+        //Inicialização do objeto que será utilizado para a substituição
+        $veiculoEnvio = $veiculo;
+        //Altera as propriedades Nome, Marca e Placa pelos valores passado pelo usuário
+        $veiculoEnvio->setNome($_POST["Nome"]);
+        $veiculoEnvio->setMarca($_POST["Marca"]);
+        $veiculoEnvio->setPlaca($_POST["Placa"]);
+        //Executa a alteração e envia para a tela de index em caso de sucesso
+        if (VeiculoController::EditarVeiculo($veiculoEnvio) != false) {
+          $host  = $_SERVER['HTTP_HOST'];
+          $uri   = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+          $extra = 'Index.php';
+          header("Location: http://$host$uri/$extra");
+          exit;
+        } else {
+          $erros = "<p class='text-danger'>Edição não realizada</p>";
+        }
       }
     }
   }
@@ -53,7 +64,7 @@ if (!isset($_SESSION["UserId"])) {
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js"></script>
   <link rel="stylesheet" href="assets/css/style.css">
-  <title>BW7 - Cadastro</title>
+  <title>BW7 - Edição</title>
 </head>
 
 <body class="container-fluid vh-100 clearfix p-0">
@@ -80,33 +91,33 @@ if (!isset($_SESSION["UserId"])) {
   <div class="container-fluid">
 
     <h4>
-      Cadastre um novo veículo
+      Pagina de Edição
     </h4>
     <div class="row">
-
-      <form action="/BW7Teste/CadastroVeiculo.php" method="post" class=" row col-12 col-md-6 mx-auto mx-md-0">
+      <?php
+      $url = "/BW7Teste/EditarVeiculo.php?IDVeiculo={$_GET['IDVeiculo']}";
+      ?>
+      <form action="<?php echo $url ?>" method="post" class=" row col-12 col-md-6 mx-auto mx-md-0">
         <div class="form-group input-group-sm col-12 col-md-6">
           <label for="inputNome">Nome:</label>
-          <input required type="text" class="form-control" name="Nome" id="inputNome" aria-describedby="helpName" placeholder="Ex: Uno" value="">
+          <input type="text" class="form-control" name="Nome" id="inputNome" aria-describedby="helpName" placeholder="Ex: Uno" value="<?php echo $veiculo->getNome() ?>">
           <small id="helpNome" class="form-text text-muted">Nome do veículo</small>
         </div>
         <div class="form-group input-group-sm col-12 col-md-6">
           <label for="inputMarca">Marca:</label>
-          <input required type="text" class="form-control " name="Marca" id="inputMarca" aria-describedby="helpMarca" placeholder="Ex: Fiat" value="">
+          <input type="text" class="form-control " name="Marca" id="inputMarca" aria-describedby="helpMarca" placeholder="Ex: Fiat" value="<?php echo $veiculo->getMarca() ?>">
           <small id="helpMarca" class="form-text text-muted">Marca do veículo</small>
         </div>
 
         <div class="form-group input-group-sm col-12">
           <label for="inputPlaca">Placa:</label>
-          <input minlength="7" maxlength="7" required type="text" class="form-control" name="Placa" id="inputPlaca" aria-describedby="helpPlaca" placeholder="Placas Mercosul" value="" onkeyup="nospaces(this)">
+          <input minlength="7" maxlength="7" type="text" class="form-control" name="Placa" id="inputPlaca" aria-describedby="helpPlaca" placeholder="Placas Mercosul" value="<?php echo $veiculo->getPlaca() ?>" onkeyup="nospaces(this)">
           <small id="helpPlaca" class="form-text text-muted">Placa do veículo.</small>
         </div>
 
-        <?php
-        echo $erros;
-        ?>
+        <?php echo $erros ?>
         <div class="d-grid gap-2 col-4 mt-3">
-          <button type="submit" class="btn btn-primary" type="button">Cadastrar</button>
+          <button type="submit" class="btn btn-primary" type="button">Editar</button>
         </div>
 
       </form>
